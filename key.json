@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "scorify1",
+  "private_key_id": "a7594bfa048d7bb26a76d43c1b5ec6253ba3c93a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCTYT6HWV9Jy9Zj\nABd06HU5fJ5mpz6HX6gO+D7uod5/rKF7SB0mvnoFLVuMaq4Q9XAQo3Sp2BebWx24\n1i5gWrHhWjxZYhAXPmfoM5/U+QanTEWiqz8+HtMwjY4NEoZuAFWqoONsY3D3TdIT\nWg2F+ZHf3ShUVpqV0UwXl9hNbFBvAgTD5A43kgh2sxMaVtOXFzx4y0+ikqvviVd0\nRDNue3Kc5LYu92nemt30LN18U2OZzClUNX+GmqeYEr+d7fJQ5R29vddE2MwsblzJ\nzbyhgoc9xerPAUeeSiaFDF8DbJelBnkpUrdLFMr+xqwkHkTh9l7H79fbLuxAdK3e\nTJg5TU09AgMBAAECggEABMwAuheM1tekBUoNZBBP28c5rEuBE8ISM9XdIy0QvfTr\nYZpDMU24UNRShei6pycnQVy3Rp2XsRu0r92Fb2dBob0rOIPiVFtYjEcn397wxOpi\nMYKjjDz6cJAJlv/VcR2g1tel51Mk7Auz93jHdrxHhPLguz6sCTh2zVAeKcZJfOoW\nKvoiRemSKkFXsfUvslq5u9+XiyZMqkSauqz/skRNfkenuLYbXqpDcFl7TEQZj4aU\nSTw0wrS7qAyRMM7kaDVwz85C9Htg4wWLYmoUUnryCCTVMTWXF0lxniMXF20Gtr0+\nTzsRmb+wVyzzVAnX7SPQ1rhyEouHbREE19IeqsSPYQKBgQDKDfVYkTN4qqw7gZUD\nBtyoLfBvbiFumnk1lleu9pICdKbzdXvi7Gf+Rtr+Nw7xGruDSsUtrtIWSy966hdV\nNAzh7MYzsqOjROmNWnKw0PxDVpYjTjtZhp055CcTOizX3W6Ens8SgwKzHVwKj/07\nmDEhIs/lGK402/2xp6aW87aCXQKBgQC6umBz78bVqoB7fWh5x0Et8EPod4JQVh7s\noxRjMVBPF+lZv43Hj58GIMNMOT+MJ3978beHT0nKCwsQc4p1fvRVoTaD2SLNqmjt\npLnrO8uAfUzsIduvwoqU7bMh+rNgPJKJ6/NEWiSf7sh94DKFxlYFNDzJWJaVGNKR\nGaO3Vi8IYQKBgDA80NwKHj2qkV/LeeW1F6zW+tW/dx/OpS1T7S8KEqWfb9QjsiXk\nxpcAF3wlbN3GwgmAKj7Tw7gqzvULOfLPcFvniRICjeqGozNp6oOoAPGalFFtdeHT\nr2mIvINsmhQW+zGSMGF9AYH9emHTKmO129TLWNKa58wa0SA+pBjZqjLJAoGBALmu\nsE9Ztq2uWQlz0bqXa7dU3xKCFPHyUdoa6SEiXqvoKUH3+/LgXNBpMAvSOeETPfBw\nk4JYVBY4GQ6I9ryUPEASifVerP87YBBA6CiFU344G5AMszr6B3jFToaRmGIwmb/R\nBB2KTjVD69dQZK0mZ0/RfEj0cPler7Vee7DKYQbBAoGBAKX5q0JQCw65qS7jzQ1N\nYaWNJFbLfJUmolJwtFGC+BLELNk+OdrbYqHZXbDkd7W++FTCp0eLz1YeVHXG3S1m\nYi2Mg1edOAGkc2r1ExrnN9HVJSpOK0/WVnsjhN6z15++FKzbDejDAsruV7ww/jo+\n96pInNuwFrE2YyQ+zqoaoYQx\n-----END PRIVATE KEY-----\n",
+  "client_email": "docker-pusher@scorify1.iam.gserviceaccount.com",
+  "client_id": "110488348992834984523",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/docker-pusher%40scorify1.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

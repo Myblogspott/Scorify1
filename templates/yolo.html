@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorify - Image Detection</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #212529;
+            color: #fff;
+            margin: 0;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+
+        video {
+            width: 80%;
+            max-height: 50vh;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h2>Image Detection</h2>
+    <video id="videoFeed" autoplay></video>
+    <button id="detectButton">Detect Objects</button>
+
+    <script>
+        const videoFeed = document.getElementById("videoFeed");
+        const detectButton = document.getElementById("detectButton");
+
+        // Start the back camera
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } } // Use back camera
+                });
+                videoFeed.srcObject = stream;
+                videoFeed.play();
+            } catch (error) {
+                console.error("Error starting camera:", error);
+                alert("Unable to access the back camera. Please check permissions.");
+            }
+        }
+
+        // Capture a frame and send it to the backend
+        async function detectImage() {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            // Set canvas size to match the video feed
+            canvas.width = videoFeed.videoWidth;
+            canvas.height = videoFeed.videoHeight;
+
+            // Draw the current frame from the video feed
+            context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+
+            // Convert the frame to Base64
+            const imageData = canvas.toDataURL("image/jpeg");
+
+            try {
+                // Send the image to the backend
+                const response = await fetch("http://127.0.0.1:5000/detect", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: imageData })
+                });
+
+                const result = await response.json();
+                alert(result.response); // Display the backend response
+            } catch (error) {
+                console.error("Error detecting objects:", error);
+                alert("An error occurred while detecting objects.");
+            }
+        }
+
+        // Start the camera feed on page load
+        window.onload = startCamera;
+
+        // Add event listener to the button
+        detectButton.addEventListener("click", detectImage);
+    </script>
+</body>
+</html>

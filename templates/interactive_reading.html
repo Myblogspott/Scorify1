@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorify</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Center align the heading and buttons */
+            height: 100vh;
+            background-color: #212529; /* Dark background */
+            margin: 0;
+            color: #fff; /* White text for heading */
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 30px; /* Space below heading */
+        }
+
+        .rotated-container {
+            display: flex;
+            flex-direction: column; /* Vertically align buttons */
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Spacing between buttons */
+        }
+
+        .btn-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%; /* Circular shape */
+            background: none; /* Transparent background */
+            color: #fff; /* White text */
+            border: 2px solid #28a745; /* Green border */
+            position: relative; /* For precise positioning of text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .btn-circle:hover {
+            background-color: #28a745; /* Green background */
+            color: #212529; /* Dark text on hover */
+            transform: scale(1.05); /* Slight zoom on hover */
+        }
+
+        .btn-circle .rotated-text {
+            transform: rotate(+90deg); /* Rotate text -90 degrees */
+            position: absolute; /* For precise positioning */
+            white-space: nowrap; /* Prevent text wrapping */
+            font-size: 1rem; /* Adjust font size as needed */
+            text-align: center;
+        }
+
+        video {
+            margin-top: 20px;
+            width: 100%;
+            max-height: 70vh;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <h2>Scorify</h2>
+    <div class="rotated-container">
+        <button id="startCameraButton" class="btn-circle btn-success">
+            <span class="rotated-text">Start Camera</span>
+        </button>
+        <button id="backCameraButton" class="btn-circle">
+            <span class="rotated-text">Back Camera</span>
+        </button>
+        <button id="imageDetectionButton" class="btn-circle">
+            <span class="rotated-text">Detect Image</span>
+        </button>
+        <button id="listenSpeakButton" class="btn-circle">
+            <span class="rotated-text">LNS</span>
+        </button>
+        <video id="videoFeed" autoplay></video>   
+    </div>
+
+    <script>
+        const startCameraButton = document.getElementById("startCameraButton");
+        const backCameraButton = document.getElementById("backCameraButton");
+        const imageDetectionButton = document.getElementById("imageDetectionButton");
+        const listenSpeakButton = document.getElementById("listenSpeakButton");
+        const videoFeed = document.getElementById("videoFeed");
+        let lastDetectedText = "";
+
+        // Start Camera Functionality
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } } // Use back camera
+                });
+                videoFeed.srcObject = stream;
+                videoFeed.style.display = "block";
+
+                // Start scanning for text every 3 seconds
+                setInterval(() => {
+                    scanForText();
+                }, 5000);
+            } catch (error) {
+                alert("Unable to access the camera. Please check permissions or ensure a back camera is available.");
+                console.error("Camera access error:", error);
+            }
+        }
+        // Scan for text and send it to the model
+        async function scanForText() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            // Ensure canvas dimensions match video feed dimensions
+            canvas.width = videoFeed.videoWidth || 640;
+            canvas.height = videoFeed.videoHeight || 480;
+
+            // Draw the video frame onto the canvas
+            context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to Base64
+            const imageData = canvas.toDataURL('image/jpeg').split(",")[1];
+
+            try {
+                // Send the image to Google Vision API
+                const visionResponse = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDaxpfOkQbVWG-RkeEH1thGgCaxitHvA3I`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        requests: [
+                            {
+                                image: { content: imageData },
+                                features: [{ type: "TEXT_DETECTION" }]
+                            }
+                        ]
+                    })
+                });
+
+                if (!visionResponse.ok) {
+                    throw new Error(`Google Vision API Error: ${visionResponse.statusText}`);
+                }
+
+                const visionResult = await visionResponse.json();
+                const questionText = visionResult.responses?.[0]?.fullTextAnnotation?.text?.trim();
+
+                if (!questionText || questionText === lastDetectedText) {
+                    console.log("No new text detected or text already processed.");
+                    return;
+                }
+
+                lastDetectedText = questionText;
+                console.log("Detected Text:", questionText);
+
+                // Send the detected text to GPT-4
+                const prompt = `Analyze the input text and generate the correct answers only, strictly without any additional context or irrelevant text:\n\n${questionText}`;
+
+                const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer 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"
+                    },
+                    body: JSON.stringify({
+                        model: "ft:gpt-3.5-turbo-1106:personal:final35turbo:AfAOz9ZO",
+                        messages: [{ role: "user", content: prompt }],
+                        max_tokens: 300
+                    })
+                });
+
+                if (!gptResponse.ok) {
+                    throw new Error("GPT-4 API error");
+                }
+
+                const gptData = await gptResponse.json();
+                const gptAnswer = gptData.choices?.[0]?.message?.content?.trim();
+
+                if (!gptAnswer) {
+                    console.log("No answer generated by GPT-4.");
+                    return;
+                }
+
+                console.log("Generated Answer:", gptAnswer);
+
+                // Speak the answer
+                const utterance = new SpeechSynthesisUtterance(gptAnswer);
+                utterance.lang = "en-IN";
+                utterance.onerror = (error) => console.error("Speech synthesis error:", error);
+                utterance.onend = () => console.log("Speech synthesis completed.");
+                speechSynthesis.speak(utterance);
+
+            } catch (error) {
+                console.error("Error during text detection or processing:", error);
+            }
+        }
+        async function detectImage() {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            // Set canvas size to match the video feed
+            canvas.width = videoFeed.videoWidth;
+            canvas.height = videoFeed.videoHeight;
+
+            // Draw the current frame from the video feed
+            context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+
+            // Convert the frame to Base64
+            const imageData = canvas.toDataURL("image/jpeg");
+
+            try {
+                // Send the image to the backend
+                const response = await fetch("http://127.0.0.1:5000/detect", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: imageData })
+                });
+
+                const result = await response.json();
+                alert(result.response); // Display the backend response
+            } catch (error) {
+                console.error("Error detecting objects:", error);
+                alert("An error occurred while detecting objects.");
+            }
+        }
+
+        async function recordAndGenerateHints() {
+            let recognition;
+            try {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = "en-US";
+                recognition.interimResults = false;
+
+                recognition.onresult = async (event) => {
+                    const recordedTopic = event.results[0][0].transcript;
+                    console.log("Recorded Topic:", recordedTopic);
+
+                    // Generate a hint based on the recorded topic
+                    const prompt = `Provide a single concise hint about the following topic:\n\n"${recordedTopic}"`;
+
+                    try {
+                        const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer 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"
+                            },
+                            body: JSON.stringify({
+                                model: "gpt-3.5-turbo",
+                                messages: [{ role: "user", content: prompt }],
+                                max_tokens: 50
+                            })
+                        });
+
+                        if (!gptResponse.ok) {
+                            throw new Error("GPT API Error");
+                        }
+
+                        const gptData = await gptResponse.json();
+                        const hint = gptData.choices?.[0]?.message?.content?.trim();
+
+                        if (!hint) {
+                            throw new Error("No hint generated by GPT.");
+                        }
+
+                        console.log("Generated Hint:", hint);
+
+                        // Speak the hint
+                        const utterance = new SpeechSynthesisUtterance(hint);
+                        utterance.lang = "en-IN";
+                        speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        console.error("Error generating hint:", error);
+                    }
+                };
+
+                recognition.onerror = (error) => {
+                    console.error("Speech recognition error:", error);
+                };
+
+                recognition.start();
+            } catch (error) {
+                console.error("Speech recognition not supported or failed:", error);
+            }
+        }
+
+        // Start the camera on page load
+        window.onload = () => {
+            startCamera();
+
+            // Add event listener for Image Detection button
+            imageDetectionButton.addEventListener("click", detectImage);
+            listenSpeakButton.addEventListener("click", recordAndGenerateHints);
+
+            // Event Listener for Start Camera Button
+            startCameraButton.addEventListener("click", startCamera);
+            backCameraButton.addEventListener("click", () => {
+                startCamera("environment"); // Back camera
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorify - OTP Validation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+            margin: 0;
+        }
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .otp-input {
+            width: 3rem;
+            height: 3rem;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+        .card {
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: #fff;
+        }
+        .btn-primary, .btn-success {
+            width: 100%;
+        }
+        .locked {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="card" id="otpCard">
+        <h3 class="text-center">Scorify - OTP Validator</h3>
+        <p class="text-center">Enter the OTP sent to you</p>
+        <form id="validateForm">
+            <div class="otp-container mb-4">
+                <input type="text" maxlength="1" class="otp-input" id="digit1" required>
+                <input type="text" maxlength="1" class="otp-input" id="digit2" required>
+                <input type="text" maxlength="1" class="otp-input" id="digit3" required>
+                <input type="text" maxlength="1" class="otp-input" id="digit4" required>
+                <input type="text" maxlength="1" class="otp-input" id="digit5" required>
+                <input type="text" maxlength="1" class="otp-input" id="digit6" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Validate OTP</button>
+        </form>
+        <p id="countdown" class="text-center mt-3" style="display: none;">OTP expires in: <span id="timeLeft"></span> seconds</p>
+        <div id="responseMessage" class="mt-3 text-center"></div>
+        <button id="loginButton" class="btn btn-success mt-3" style="display: none;">Login to App</button>
+    </div>
+
+    <div id="lockScreen" class="locked" style="display: none;">
+        <h1>OTP is expired</h1>
+        <p>Please request a new OTP to continue.</p>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.otp-input');
+
+        // Automatically move to the next input field
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0 && !input.value) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        let countdownInterval;
+
+        // Form submission
+        document.getElementById('validateForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const otp = Array.from(inputs).map(input => input.value).join('');
+
+            fetch('https://otp-validator-444300.uc.r.appspot.com/validate_otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ otp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseMessage = document.getElementById('responseMessage');
+                const countdownElement = document.getElementById('countdown');
+                const timeLeftElement = document.getElementById('timeLeft');
+                const otpCard = document.getElementById('otpCard');
+                const lockScreen = document.getElementById('lockScreen');
+                const loginButton = document.getElementById('loginButton');
+
+                if (data.error) {
+                    responseMessage.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = 'none';
+                } else {
+                    responseMessage.innerHTML = `<div class="alert alert-success">${data.message} - OTP Type: ${data.otp_type}</div>`;
+                    countdownElement.style.display = 'block';
+                    loginButton.style.display = 'block';
+
+                    let timeLeft = data.expires_in;
+                    timeLeftElement.textContent = timeLeft;
+
+                    countdownInterval = setInterval(() => {
+                        if (timeLeft > 0) {
+                            timeLeft--;
+                            timeLeftElement.textContent = timeLeft;
+                        } else {
+                            clearInterval(countdownInterval);
+                            otpCard.style.display = 'none';
+                            lockScreen.style.display = 'flex';
+                        }
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                const responseMessage = document.getElementById('responseMessage');
+                responseMessage.innerHTML = `<div class="alert alert-danger">Error validating OTP: ${error}</div>`;
+            });
+        });
+
+        // Redirect to app login
+        document.getElementById('loginButton').addEventListener('click', function () {
+            window.location.href = 'interactive_reading.html';
+        });
+    </script>
+</body>
+</html>
