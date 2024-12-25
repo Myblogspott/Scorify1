@@ -75,7 +75,7 @@ def speak_response(response):
 # Serve the HTML file
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('yolo.html')
 
 # Serve the manifest.json file
 @app.route('/manifest.json')
